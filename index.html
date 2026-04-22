@@ -1,0 +1,1118 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coherencia Solar — Energía con Propósito</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,300;1,400;1,500&family=DM+Sans:opsz,wght@9..40,200;9..40,300;9..40,400;9..40,500&family=DM+Mono:wght@300;400&display=swap" rel="stylesheet">
+<style>
+/* ══════════════════════════ TOKENS */
+:root{
+  --sol:#E8A020; --sol-lt:#F5C842;
+  --tierra:#C4714A; --verde:#2D5C3E; --verde-mid:#3D7A54;
+  --crema:#F6F1E9; --crema-dk:#EDE5D4;
+  --carbon:#181816; --c2:#222220; --c3:#2A2A26;
+  --stone:#6B6660;
+  --rdk:rgba(255,255,255,0.07); --rlt:rgba(0,0,0,0.08);
+  --nav-h:72px;
+}
+*,*::before,*::after{margin:0;padding:0;box-sizing:border-box;}
+html{scroll-behavior:smooth;}
+body{font-family:'DM Sans',sans-serif;background:var(--carbon);color:var(--crema);-webkit-font-smoothing:antialiased;overflow-x:hidden;}
+
+/* ══ PROGRESS BAR */
+#progress-bar{position:fixed;top:0;left:0;height:2px;width:0%;background:linear-gradient(90deg,var(--verde),var(--sol),var(--sol-lt));z-index:200;transition:width .1s linear;}
+
+/* ══════════════════════════ LOGO — PERFECTLY SYMMETRIC
+   ViewBox 0 0 72 72 · center (36,36)
+   - Outer dashed circle r=32
+   - Pointy-top regular hexagon R=22
+     vertices at angles 90°,30°,−30°,−90°,−150°,150°
+     → "36,14 55.1,25 55.1,47 36,58 16.9,47 16.9,25"
+   - Inner circle r=12
+   - 8 rays, evenly spaced 45°, from r=25 to r=31
+   - Center dot r=6.5
+   - ALL spin: 60s clockwise (once per minute)
+*/
+@keyframes spin-cw  { to { transform: rotate(360deg);  } }
+@keyframes spin-ccw { to { transform: rotate(-360deg); } }
+@keyframes breathe  { 0%,100%{opacity:1;transform:scale(1);}  50%{opacity:.82;transform:scale(.97);} }
+@keyframes fade-up  { from{opacity:0;transform:translateY(22px);} to{opacity:1;transform:translateY(0);} }
+@keyframes fade-in  { from{opacity:0;} to{opacity:1;} }
+
+/* All logos: once per minute clockwise */
+.logo-spin { animation: spin-cw 60s linear infinite; }
+/* Orbit rings in hero — slower, reversed for contrast */
+.orbit-cw  { animation: spin-cw  80s linear infinite; }
+.orbit-ccw { animation: spin-ccw 55s linear infinite; }
+.hero-breathe { animation: breathe 7s ease-in-out infinite; }
+
+/* ══════════════════════════ NAV */
+nav{position:fixed;top:0;left:0;right:0;height:var(--nav-h);z-index:100;display:flex;align-items:center;justify-content:space-between;padding:0 56px;background:rgba(24,24,22,.94);backdrop-filter:blur(20px);border-bottom:1px solid var(--rdk);}
+.nav-logo{display:flex;align-items:center;gap:14px;text-decoration:none;cursor:pointer;}
+.nl-main{font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--crema);line-height:1;display:block;}
+.nl-sub{font-size:7.5px;font-weight:400;letter-spacing:.45em;text-transform:uppercase;color:var(--sol);line-height:1;display:block;margin-top:2px;}
+.nav-links{display:flex;align-items:center;gap:40px;list-style:none;}
+.nav-links a{font-size:11px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:rgba(246,241,233,.42);text-decoration:none;transition:color .2s;}
+.nav-links a:hover{color:var(--crema);}
+.nav-cta{font-size:10px!important;font-weight:500!important;letter-spacing:.2em!important;color:var(--carbon)!important;background:var(--sol)!important;padding:10px 22px!important;clip-path:polygon(8px 0%,100% 0%,calc(100% - 8px) 100%,0% 100%);transition:background .2s!important;}
+.nav-cta:hover{background:var(--sol-lt)!important;}
+.nav-burger{display:none;flex-direction:column;gap:5px;cursor:pointer;padding:4px;background:none;border:none;}
+.nav-burger span{display:block;width:22px;height:1px;background:var(--crema);}
+.mob-menu{position:fixed;inset:0;background:var(--carbon);z-index:99;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:28px;opacity:0;pointer-events:none;transition:opacity .3s;}
+.mob-menu.open{opacity:1;pointer-events:all;}
+.mob-menu a{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--crema);text-decoration:none;transition:color .2s;}
+.mob-menu a:hover{color:var(--sol);}
+
+/* ══════════════════════════ BUTTONS */
+.btn-primary{display:inline-flex;align-items:center;gap:14px;font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--carbon);background:var(--sol);text-decoration:none;border:none;cursor:pointer;padding:17px 38px;clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);transition:background .2s,transform .2s,box-shadow .2s;}
+.btn-primary:hover{background:var(--sol-lt);transform:translateY(-2px);box-shadow:0 12px 32px rgba(232,160,32,.25);}
+.btn-ghost{display:inline-flex;align-items:center;gap:14px;font-size:11px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:rgba(246,241,233,.5);text-decoration:none;background:none;border:none;cursor:pointer;padding:0;transition:color .2s;}
+.btn-ghost:hover{color:var(--crema);}
+.ghost-line{display:block;width:32px;height:1px;background:currentColor;transition:width .3s;}
+.btn-ghost:hover .ghost-line{width:52px;}
+.btn-outline{display:inline-flex;align-items:center;gap:12px;font-size:10px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--sol);border:1px solid rgba(232,160,32,.3);background:transparent;padding:12px 24px;text-decoration:none;cursor:pointer;transition:background .25s,border-color .25s;}
+.btn-outline:hover{background:rgba(232,160,32,.07);border-color:var(--sol);}
+.btn-verde{display:inline-flex;align-items:center;gap:14px;font-size:11px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--crema);background:var(--verde);text-decoration:none;border:none;cursor:pointer;padding:16px 32px;clip-path:polygon(10px 0%,100% 0%,calc(100% - 10px) 100%,0% 100%);transition:background .2s,transform .2s;}
+.btn-verde:hover{background:var(--verde-mid);transform:translateY(-1px);}
+
+/* ══════════════════════════ HERO */
+#home{min-height:100vh;padding-top:var(--nav-h);display:grid;grid-template-columns:1fr 1fr;position:relative;overflow:hidden;}
+.hero-glow{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse 700px 600px at 70% 40%,rgba(232,160,32,.07) 0%,transparent 60%),radial-gradient(ellipse 400px 400px at 10% 80%,rgba(45,92,62,.1) 0%,transparent 55%);}
+.hero-left{padding:80px 64px 80px 72px;display:flex;flex-direction:column;justify-content:space-between;position:relative;z-index:1;}
+.hero-eyebrow{font-size:9.5px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--sol);display:flex;align-items:center;gap:14px;}
+.hero-eyebrow::before{content:'';display:block;width:28px;height:1px;background:var(--sol);opacity:.6;}
+.hero-h1{font-family:'Cormorant Garamond',serif;font-size:clamp(50px,5.5vw,82px);font-weight:300;line-height:.95;letter-spacing:-.02em;color:var(--crema);margin-top:36px;}
+.hero-h1 em{font-style:italic;color:var(--sol-lt);}
+.hero-sub{font-size:14px;font-weight:300;line-height:1.8;color:rgba(246,241,233,.42);max-width:400px;margin-top:28px;}
+.hero-actions{display:flex;align-items:center;gap:28px;margin-top:52px;flex-wrap:wrap;}
+.hero-stats{display:flex;gap:40px;padding-top:44px;border-top:1px solid var(--rdk);margin-top:44px;flex-wrap:wrap;}
+.hs-n{font-family:'Cormorant Garamond',serif;font-size:36px;font-weight:300;color:var(--crema);line-height:1;}
+.hs-n span{color:var(--sol);font-style:italic;}
+.hs-l{font-size:9.5px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:var(--stone);margin-top:6px;}
+.fu{opacity:0;animation:fade-up .7s ease forwards;}
+.fu:nth-child(1){animation-delay:.1s;}.fu:nth-child(2){animation-delay:.25s;}.fu:nth-child(3){animation-delay:.4s;}.fu:nth-child(4){animation-delay:.55s;}.fu:nth-child(5){animation-delay:.7s;}
+.hero-right{position:relative;overflow:hidden;background:var(--c2);}
+.hero-visual{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;}
+.h-orbit{position:absolute;border-radius:50%;border:1px solid rgba(232,160,32,.06);}
+.h-orbit-g{border-color:rgba(45,92,62,.1);}
+.hero-corner{position:absolute;font-size:9px;letter-spacing:.25em;text-transform:uppercase;color:rgba(255,255,255,.1);}
+.hero-corner.r{writing-mode:vertical-lr;right:24px;top:50%;transform:translateY(-50%);}
+.hero-corner.b{bottom:24px;left:50%;transform:translateX(-50%);}
+
+/* ══════════════════════════ MANIFESTO */
+.manifesto{background:var(--crema);padding:96px 72px;display:grid;grid-template-columns:1fr 1.8fr;gap:80px;align-items:center;}
+.m-lbl{font-size:9.5px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--stone);}
+.m-q{font-family:'Cormorant Garamond',serif;font-size:clamp(26px,3vw,42px);font-weight:300;font-style:italic;line-height:1.3;color:var(--carbon);}
+.m-q strong{font-style:normal;font-weight:600;color:var(--verde);}
+
+/* ══════════════════════════ SECTIONS */
+.page{padding:100px 72px;}
+.page-dk{background:var(--carbon);}
+.page-lt{background:var(--crema);}
+.section-header{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:60px;padding-bottom:24px;border-bottom:1px solid var(--rdk);}
+.section-header.lt{border-color:var(--rlt);}
+.sh-lbl{font-size:9.5px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--sol);display:flex;align-items:center;gap:14px;}
+.sh-lbl::before{content:'';display:block;width:24px;height:1px;background:currentColor;opacity:.5;}
+.sh-lbl.grn{color:var(--verde);}
+.sh-title{font-family:'Cormorant Garamond',serif;font-size:40px;font-weight:300;color:var(--crema);letter-spacing:-.01em;}
+.sh-title em{font-style:italic;color:var(--sol-lt);}
+.sh-title.dk{color:var(--carbon);}
+.sh-title.dk em{color:var(--verde);}
+
+/* ══════════════════════════ SERVICIOS */
+.svc-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px;margin-bottom:2px;}
+.svc-card{background:var(--c2);padding:60px 52px;position:relative;overflow:hidden;cursor:default;transition:background .3s;}
+.svc-grid-bg{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(232,160,32,.02) 1px,transparent 1px),linear-gradient(90deg,rgba(232,160,32,.02) 1px,transparent 1px);background-size:40px 40px;opacity:0;transition:opacity .4s;}
+.svc-card:hover .svc-grid-bg{opacity:1;}
+.svc-card::after{content:'';position:absolute;bottom:0;left:0;width:0;height:2px;background:var(--sol);transition:width .4s;}
+.svc-card:hover::after{width:100%;}
+.svc-card:hover{background:var(--c3);}
+.svc-icon{margin-bottom:28px;}
+.svc-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:400;color:var(--crema);margin-bottom:14px;}
+.svc-desc{font-size:13px;font-weight:300;line-height:1.85;color:rgba(246,241,233,.42);max-width:420px;margin-bottom:36px;}
+.svc-feats{display:flex;flex-direction:column;gap:9px;margin-bottom:36px;}
+.svc-feat{display:flex;align-items:center;gap:12px;font-size:12px;font-weight:300;color:rgba(246,241,233,.55);}
+.svc-feat::before{content:'';display:block;width:4px;height:4px;border-radius:50%;background:var(--sol);flex-shrink:0;}
+.svc-tag{position:absolute;top:28px;right:36px;font-size:9px;letter-spacing:.22em;text-transform:uppercase;color:rgba(255,255,255,.12);}
+.process-row{display:grid;grid-template-columns:repeat(4,1fr);background:var(--verde);}
+.proc-step{padding:44px 36px;border-right:1px solid rgba(255,255,255,.08);transition:background .3s;}
+.proc-step:last-child{border-right:none;}
+.proc-step:hover{background:rgba(255,255,255,.05);}
+.proc-num{font-family:'DM Mono',monospace;font-size:10px;color:rgba(255,255,255,.25);margin-bottom:18px;}
+.proc-title{font-family:'Cormorant Garamond',serif;font-size:21px;font-weight:400;color:var(--crema);margin-bottom:10px;}
+.proc-desc{font-size:12px;font-weight:300;line-height:1.7;color:rgba(255,255,255,.4);}
+
+/* ══════════════════════════ SURVEY */
+.survey-wrap{background:var(--c2);border:1px solid var(--rdk);margin-top:2px;position:relative;overflow:hidden;}
+.survey-wrap::before{content:'';position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(232,160,32,.018) 1px,transparent 1px),linear-gradient(90deg,rgba(232,160,32,.018) 1px,transparent 1px);background-size:40px 40px;}
+.survey-inner{padding:56px 64px;position:relative;z-index:1;}
+.survey-header{margin-bottom:44px;}
+.survey-eyebrow{font-size:9px;font-weight:500;letter-spacing:.28em;text-transform:uppercase;color:var(--sol);margin-bottom:10px;}
+.survey-title{font-family:'Cormorant Garamond',serif;font-size:30px;font-weight:300;color:var(--crema);}
+.survey-title em{font-style:italic;color:var(--sol-lt);}
+/* Steps */
+.survey-step{display:none;}
+.survey-step.active{display:block;}
+.step-question{font-family:'Cormorant Garamond',serif;font-size:24px;font-weight:400;color:var(--crema);margin-bottom:8px;line-height:1.3;}
+.step-hint{font-size:12px;font-weight:300;color:rgba(246,241,233,.35);margin-bottom:32px;line-height:1.6;max-width:560px;}
+.step-options{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;}
+.step-options.four{grid-template-columns:repeat(2,1fr);}
+.step-options.three{grid-template-columns:repeat(3,1fr);}
+.opt-btn{
+  background:var(--c3);border:1px solid var(--rdk);
+  padding:20px 20px;text-align:left;cursor:pointer;
+  transition:background .2s,border-color .2s,transform .15s;
+  display:flex;flex-direction:column;gap:8px;
+  position:relative;overflow:hidden;
+}
+.opt-btn::after{content:'';position:absolute;inset:0;background:rgba(232,160,32,0);transition:background .2s;}
+.opt-btn:hover{background:rgba(232,160,32,.06);border-color:rgba(232,160,32,.4);transform:translateY(-2px);}
+.opt-btn.selected{background:rgba(232,160,32,.1);border-color:var(--sol);}
+.opt-emoji{font-size:22px;line-height:1;}
+.opt-label{font-size:13px;font-weight:400;color:var(--crema);line-height:1.3;}
+.opt-sub{font-size:11px;font-weight:300;color:rgba(246,241,233,.38);line-height:1.4;}
+/* Progress dots */
+.survey-progress{display:flex;gap:8px;align-items:center;margin-bottom:36px;}
+.sp-dot{width:6px;height:6px;border-radius:50%;background:rgba(255,255,255,.15);transition:background .3s,transform .3s;}
+.sp-dot.active{background:var(--sol);transform:scale(1.3);}
+.sp-dot.done{background:var(--verde-mid);}
+/* Nav buttons */
+.survey-nav{display:flex;align-items:center;justify-content:space-between;margin-top:36px;}
+.survey-back{font-size:10px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:rgba(246,241,233,.3);background:none;border:none;cursor:pointer;transition:color .2s;padding:0;}
+.survey-back:hover{color:var(--crema);}
+/* Result */
+.survey-result{display:none;}
+.sr-icon{font-size:48px;margin-bottom:20px;}
+.sr-tag{font-size:9px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--sol);margin-bottom:12px;}
+.sr-title{font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:400;color:var(--crema);margin-bottom:20px;line-height:1.2;}
+.sr-body{font-size:13px;font-weight:300;line-height:1.85;color:rgba(246,241,233,.5);max-width:520px;margin-bottom:16px;}
+.sr-note{font-size:12px;font-weight:300;line-height:1.7;color:rgba(246,241,233,.32);max-width:520px;border-left:2px solid rgba(232,160,32,.3);padding-left:16px;margin-bottom:32px;}
+.survey-restart{font-size:10px;font-weight:400;letter-spacing:.18em;text-transform:uppercase;color:rgba(246,241,233,.25);background:none;border:none;cursor:pointer;margin-top:12px;display:block;transition:color .2s;}
+.survey-restart:hover{color:var(--crema);}
+
+/* ══════════════════════════ PROYECTOS */
+.proj-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;}
+.proj-card{position:relative;overflow:hidden;cursor:default;background:var(--c3);}
+.proj-card.feat{grid-column:span 2;aspect-ratio:16/8;}
+.proj-card:not(.feat){aspect-ratio:4/3;}
+.proj-img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .6s ease;filter:brightness(.82);}
+.proj-card:hover .proj-img{transform:scale(1.05);filter:brightness(.65);}
+.proj-panel-grid{position:absolute;inset:0;pointer-events:none;background-image:linear-gradient(rgba(232,160,32,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(232,160,32,.055) 1px,transparent 1px);background-size:48px 48px;opacity:0;transition:opacity .4s;}
+.proj-card:hover .proj-panel-grid{opacity:1;}
+.proj-overlay{position:absolute;inset:0;background:linear-gradient(to top,rgba(24,24,22,.9) 0%,rgba(24,24,22,.1) 55%,transparent 100%);opacity:0;transition:opacity .35s;}
+.proj-card:hover .proj-overlay{opacity:1;}
+.proj-info{position:absolute;bottom:0;left:0;right:0;padding:28px;transform:translateY(8px);opacity:0;transition:transform .35s,opacity .35s;}
+.proj-card:hover .proj-info{transform:translateY(0);opacity:1;}
+.proj-tag{font-size:9px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--sol);margin-bottom:5px;}
+.proj-name{font-family:'Cormorant Garamond',serif;font-size:20px;font-weight:400;color:var(--crema);line-height:1.2;}
+.proj-detail{font-size:11px;font-weight:300;color:rgba(255,255,255,.5);margin-top:4px;}
+.proj-badge{position:absolute;top:16px;left:16px;background:rgba(24,24,22,.72);backdrop-filter:blur(8px);padding:5px 12px;font-size:9px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:rgba(255,255,255,.55);transition:opacity .3s;}
+.proj-card:hover .proj-badge{opacity:0;}
+.proj-cta{margin-top:3px;padding:36px 48px;background:var(--carbon);display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px;}
+.proj-cta-text{font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:300;font-style:italic;color:var(--crema);}
+
+/* ══════════════════════════ NÚMEROS — count-up */
+.numbers{background:var(--c2);display:grid;grid-template-columns:repeat(4,1fr);border-top:1px solid var(--rdk);}
+.num-cell{padding:52px 32px;border-right:1px solid var(--rdk);text-align:center;}
+.num-cell:last-child{border-right:none;}
+.nc-n{font-family:'Cormorant Garamond',serif;font-size:64px;font-weight:300;color:var(--crema);line-height:1;letter-spacing:-.02em;}
+.nc-n span{color:var(--sol);font-style:italic;}
+.nc-l{font-size:10px;font-weight:400;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-top:10px;}
+
+/* ══════════════════════════ TESTIMONIALS */
+.testi-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:2px;}
+.testi-card{background:var(--crema-dk);padding:44px 40px;display:flex;flex-direction:column;gap:24px;transition:background .25s,transform .25s;}
+.testi-card:hover{background:var(--carbon);transform:translateY(-4px);}
+.tc-stars{font-size:14px;color:var(--sol);letter-spacing:2px;}
+.tc-text{font-family:'Cormorant Garamond',serif;font-size:19px;font-style:italic;font-weight:300;line-height:1.5;color:rgba(22,22,20,.7);flex:1;transition:color .25s;}
+.testi-card:hover .tc-text{color:rgba(246,241,233,.6);}
+.tc-sep{width:24px;height:1px;background:rgba(0,0,0,.15);}
+.testi-card:hover .tc-sep{background:rgba(255,255,255,.1);}
+.tc-name{font-size:12px;font-weight:500;letter-spacing:.12em;color:var(--carbon);transition:color .25s;}
+.testi-card:hover .tc-name{color:var(--crema);}
+.tc-role{font-size:11px;font-weight:300;color:rgba(22,22,20,.4);margin-top:2px;transition:color .25s;}
+.testi-card:hover .tc-role{color:var(--stone);}
+
+/* ══════════════════════════ WHY */
+.why{background:var(--crema);padding:100px 72px;display:grid;grid-template-columns:1fr 1fr;gap:72px;align-items:center;}
+.why-eyebrow{font-size:9.5px;font-weight:500;letter-spacing:.3em;text-transform:uppercase;color:var(--verde);display:flex;align-items:center;gap:14px;margin-bottom:24px;}
+.why-eyebrow::before{content:'';width:24px;height:1px;background:var(--verde);opacity:.5;}
+.why-title{font-family:'Cormorant Garamond',serif;font-size:46px;font-weight:300;line-height:1.05;color:var(--carbon);letter-spacing:-.01em;margin-bottom:28px;}
+.why-title em{font-style:italic;color:var(--verde);}
+.why-text{font-size:14px;font-weight:300;line-height:1.85;color:rgba(22,22,20,.55);max-width:420px;}
+.why-cards{display:flex;flex-direction:column;gap:2px;}
+.why-card{background:var(--crema-dk);padding:32px 36px;display:flex;gap:20px;align-items:flex-start;transition:background .25s,transform .25s;}
+.why-card:hover{background:var(--carbon);transform:translateX(4px);}
+.why-card:hover .wc-t,.why-card:hover .wc-n{color:var(--crema)!important;}
+.why-card:hover .wc-d{color:rgba(255,255,255,.38)!important;}
+.wc-n{font-family:'DM Mono',monospace;font-size:10px;color:rgba(0,0,0,.2);padding-top:3px;flex-shrink:0;width:24px;transition:color .25s;}
+.wc-t{font-family:'Cormorant Garamond',serif;font-size:19px;font-weight:500;color:var(--carbon);margin-bottom:6px;transition:color .25s;}
+.wc-d{font-size:12.5px;font-weight:300;line-height:1.7;color:rgba(22,22,20,.5);transition:color .25s;}
+
+/* ══════════════════════════ FAQ */
+#faq{padding:100px 72px;background:var(--carbon);}
+.faq-list{max-width:800px;display:flex;flex-direction:column;}
+.faq-item{border-bottom:1px solid var(--rdk);}
+.faq-q{display:flex;justify-content:space-between;align-items:center;padding:28px 0;cursor:pointer;font-family:'Cormorant Garamond',serif;font-size:22px;font-weight:400;color:rgba(246,241,233,.7);transition:color .2s;gap:20px;background:none;border:none;width:100%;text-align:left;}
+.faq-q:hover,.faq-q.open{color:var(--crema);}
+.faq-icon{width:28px;height:28px;border:1px solid rgba(255,255,255,.1);border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;color:var(--sol);font-size:16px;transition:transform .3s,background .2s;}
+.faq-q.open .faq-icon{transform:rotate(45deg);background:rgba(232,160,32,.1);}
+.faq-a{max-height:0;overflow:hidden;transition:max-height .4s ease,padding .3s ease;font-size:14px;font-weight:300;line-height:1.8;color:rgba(246,241,233,.42);}
+.faq-a.open{max-height:300px;padding-bottom:28px;}
+
+/* ══════════════════════════ CONTACTO */
+#contacto{background:var(--carbon);padding:100px 72px;border-top:1px solid var(--rdk);}
+.contact-grid{display:grid;grid-template-columns:1fr 1.4fr;gap:80px;margin-top:60px;}
+.contact-intro{font-family:'Cormorant Garamond',serif;font-size:34px;font-weight:300;line-height:1.2;color:var(--crema);letter-spacing:-.01em;margin-bottom:32px;}
+.contact-intro em{font-style:italic;color:var(--sol-lt);}
+.contact-details{display:flex;flex-direction:column;gap:18px;margin-bottom:36px;}
+.cd-item{display:flex;gap:16px;align-items:flex-start;}
+.cd-icon{width:32px;height:32px;border:1px solid var(--rdk);border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
+.cd-lbl{font-size:9.5px;font-weight:500;letter-spacing:.2em;text-transform:uppercase;color:var(--stone);margin-bottom:3px;}
+.cd-val{font-size:13px;font-weight:300;color:rgba(246,241,233,.6);}
+.form{display:flex;flex-direction:column;gap:14px;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.form-lbl{font-size:9px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--stone);display:block;margin-bottom:7px;}
+.form-input,.form-sel,.form-ta{width:100%;background:var(--c2);border:1px solid var(--rdk);color:var(--crema);font-family:'DM Sans',sans-serif;font-size:13px;font-weight:300;padding:13px 16px;outline:none;appearance:none;-webkit-appearance:none;transition:border-color .2s,background .2s;}
+.form-input::placeholder,.form-ta::placeholder{color:rgba(246,241,233,.18);}
+.form-input:focus,.form-sel:focus,.form-ta:focus{border-color:rgba(232,160,32,.4);background:var(--c3);}
+.form-sel{background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1L5 5L9 1' stroke='%236B6660' stroke-width='1.2'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 14px center;color:rgba(246,241,233,.32);cursor:pointer;}
+.form-sel option{background:var(--c2);color:var(--crema);}
+.form-ta{resize:vertical;min-height:110px;}
+.form-submit{align-self:flex-start;margin-top:6px;display:inline-flex;align-items:center;gap:16px;font-family:'DM Sans',sans-serif;font-size:11px;font-weight:500;letter-spacing:.22em;text-transform:uppercase;color:var(--carbon);background:var(--sol);border:none;cursor:pointer;padding:17px 40px;clip-path:polygon(12px 0%,100% 0%,calc(100% - 12px) 100%,0% 100%);transition:background .2s,transform .2s;}
+.form-submit:hover{background:var(--sol-lt);transform:translateY(-1px);}
+
+/* ══════════════════════════ FOOTER */
+footer{background:var(--c2);border-top:1px solid var(--rdk);}
+.footer-main{padding:68px 72px;display:grid;grid-template-columns:1.5fr 1fr 1fr 1fr;gap:52px;}
+.fb-tag{font-family:'Cormorant Garamond',serif;font-size:15px;font-style:italic;font-weight:300;color:rgba(246,241,233,.28);max-width:220px;line-height:1.5;margin-top:18px;}
+.fc-title{font-size:9.5px;font-weight:500;letter-spacing:.25em;text-transform:uppercase;color:var(--stone);margin-bottom:18px;}
+.fc-links{list-style:none;display:flex;flex-direction:column;gap:9px;}
+.fc-links a{font-size:13px;font-weight:300;color:rgba(246,241,233,.3);text-decoration:none;transition:color .2s;}
+.fc-links a:hover{color:var(--crema);}
+.footer-bot{padding:22px 72px;border-top:1px solid var(--rdk);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+.footer-copy{font-size:11px;font-weight:300;color:rgba(246,241,233,.18);}
+.footer-copy span{color:var(--sol);}
+
+/* ══════════════════════════ WHATSAPP FLOAT */
+.wa-float{position:fixed;bottom:32px;right:32px;z-index:90;width:56px;height:56px;border-radius:50%;background:var(--verde);display:flex;align-items:center;justify-content:center;box-shadow:0 4px 20px rgba(0,0,0,.4);text-decoration:none;transition:transform .25s,box-shadow .25s;animation:fade-in .5s ease 1.2s both;}
+.wa-float:hover{transform:scale(1.1) translateY(-2px);box-shadow:0 8px 28px rgba(0,0,0,.5);}
+.wa-tooltip{position:absolute;right:68px;background:var(--carbon);color:var(--crema);font-size:11px;padding:8px 14px;white-space:nowrap;opacity:0;transform:translateX(8px);pointer-events:none;transition:opacity .25s,transform .25s;border:1px solid var(--rdk);}
+.wa-float:hover .wa-tooltip{opacity:1;transform:translateX(0);}
+
+/* ══════════════════════════ SCROLL REVEAL */
+.reveal{opacity:0;transform:translateY(24px);transition:opacity .65s ease,transform .65s ease;}
+.reveal.visible{opacity:1;transform:none;}
+.rd1{transition-delay:.1s;}.rd2{transition-delay:.2s;}.rd3{transition-delay:.3s;}.rd4{transition-delay:.4s;}
+
+/* ══════════════════════════ RESPONSIVE */
+@media(max-width:1100px){
+  nav{padding:0 28px;}.nav-links{display:none;}.nav-burger{display:flex;}
+  #home{grid-template-columns:1fr;}.hero-right{display:none;}.hero-left{padding:60px 32px;}
+  .manifesto{grid-template-columns:1fr;gap:20px;padding:64px 32px;}
+  .page{padding:72px 32px;}
+  .svc-grid{grid-template-columns:1fr;}
+  .process-row{grid-template-columns:1fr 1fr;}
+  .survey-inner{padding:40px 32px;}
+  .step-options{grid-template-columns:1fr 1fr!important;}
+  .proj-grid{grid-template-columns:1fr 1fr;}.proj-card.feat{grid-column:span 2;}
+  .numbers{grid-template-columns:1fr 1fr;}.num-cell{border-right:none;border-bottom:1px solid var(--rdk);}
+  .testi-grid{grid-template-columns:1fr;}
+  .why{grid-template-columns:1fr;padding:72px 32px;}
+  .contact-grid{grid-template-columns:1fr;gap:48px;}
+  .footer-main{grid-template-columns:1fr 1fr;padding:48px 32px;}
+  .footer-bot{padding:20px 32px;}
+}
+@media(max-width:600px){
+  .proj-grid{grid-template-columns:1fr;}.proj-card.feat{grid-column:span 1;aspect-ratio:4/3;}
+  .process-row{grid-template-columns:1fr;}
+  .form-row{grid-template-columns:1fr;}
+  .footer-main{grid-template-columns:1fr;}
+  .wa-float{bottom:20px;right:20px;}
+  .step-options{grid-template-columns:1fr!important;}
+}
+</style>
+</head>
+<body>
+
+<div id="progress-bar"></div>
+
+<!-- ══ WHATSAPP FLOAT ══════════════════════════ -->
+<a class="wa-float" href="https://wa.me/5491163777936?text=Hola%20Coherencia%20Solar!%20Quiero%20consultar%20sobre%20paneles%20solares." target="_blank" rel="noopener">
+  <svg width="26" height="26" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+  <span class="wa-tooltip">Escribinos por WhatsApp</span>
+</a>
+
+<!-- ══ NAV ══════════════════════════════════════ -->
+<nav>
+  <a class="nav-logo" href="#home">
+    <!--
+      LOGO PERFECTAMENTE SIMÉTRICO — viewBox 72×72, centro (36,36)
+      Hexágono regular pointy-top R=22:
+        vértices: "36,14 55.1,25 55.1,47 36,58 16.9,47 16.9,25"
+      8 rayos equidistantes 45°, r=25→31
+      Círculo exterior punteado r=32, círculo interior r=12, dot r=6.5
+    -->
+    <svg width="36" height="36" viewBox="0 0 72 72" fill="none" class="logo-spin">
+      <!-- Outer dashed ring -->
+      <circle cx="36" cy="36" r="32" stroke="#E8A020" stroke-width="0.9" stroke-dasharray="4 3" opacity="0.7"/>
+      <!-- Hexagon pointy-top R=22 -->
+      <polygon points="36,14 55.1,25 55.1,47 36,58 16.9,47 16.9,25" stroke="#E8A020" stroke-width="1.5" fill="none"/>
+      <!-- Inner ring -->
+      <circle cx="36" cy="36" r="12" stroke="#F5C842" stroke-width="0.7" fill="none" opacity="0.35"/>
+      <!-- 8 symmetric rays, each r=25→31, spaced 45° -->
+      <!-- N  → 0°  --> <line x1="36"  y1="5"   x2="36"  y2="11"  stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- NE → 45° --> <line x1="57.9" y1="14.1" x2="53.7" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- E  → 90° --> <line x1="67"  y1="36"  x2="61"  y2="36"  stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- SE →135° --> <line x1="57.9" y1="57.9" x2="53.7" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- S  →180° --> <line x1="36"  y1="67"  x2="36"  y2="61"  stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- SW →225° --> <line x1="14.1" y1="57.9" x2="18.3" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- W  →270° --> <line x1="5"   y1="36"  x2="11"  y2="36"  stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+      <!-- NW →315° --> <line x1="14.1" y1="14.1" x2="18.3" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+      <!-- Center dot -->
+      <circle cx="36" cy="36" r="6.5" fill="#E8A020"/>
+    </svg>
+    <div>
+      <span class="nl-main">Coherencia</span>
+      <span class="nl-sub">Solar</span>
+    </div>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#servicios">Servicios</a></li>
+    <li><a href="#proyectos">Proyectos</a></li>
+    <li><a href="#nosotros">Nosotros</a></li>
+    <li><a href="#faq">FAQ</a></li>
+    <li><a href="#contacto" class="nav-cta">Presupuesto</a></li>
+  </ul>
+  <button class="nav-burger" id="burger" onclick="toggleMenu()">
+    <span></span><span></span><span></span>
+  </button>
+</nav>
+<div class="mob-menu" id="mobMenu">
+  <a href="#home"      onclick="toggleMenu()">Inicio</a>
+  <a href="#servicios" onclick="toggleMenu()">Servicios</a>
+  <a href="#proyectos" onclick="toggleMenu()">Proyectos</a>
+  <a href="#nosotros"  onclick="toggleMenu()">Nosotros</a>
+  <a href="#faq"       onclick="toggleMenu()">FAQ</a>
+  <a href="#contacto"  onclick="toggleMenu()" style="color:var(--sol)">Contacto</a>
+</div>
+
+<!-- ══ HERO ══════════════════════════════════════ -->
+<section id="home">
+  <div class="hero-glow"></div>
+  <div class="hero-left">
+    <div>
+      <p class="hero-eyebrow fu">Diseño e instalación solar · Argentina</p>
+      <h1 class="hero-h1 fu">Energía que<br><em>transforma</em><br>con propósito.</h1>
+      <p class="hero-sub fu">Instalamos sistemas fotovoltaicos para hogares e industrias. Con diseño profesional, materiales certificados y un compromiso real con tu futuro energético.</p>
+      <div class="hero-actions fu">
+        <a href="#contacto" class="btn-primary">
+          Solicitar presupuesto
+          <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M1 5H13M9 1L13 5L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+        </a>
+        <button class="btn-ghost" onclick="document.querySelector('#proyectos').scrollIntoView({behavior:'smooth'})">
+          <span class="ghost-line"></span>
+          Ver proyectos
+          <svg width="12" height="8" viewBox="0 0 12 8" fill="none"><path d="M1 4H11M7.5 1L11 4L7.5 7" stroke="currentColor" stroke-width="1.3" stroke-linecap="round"/></svg>
+        </button>
+      </div>
+    </div>
+    <div class="hero-stats fu">
+      <div><div class="hs-n">100<span>%</span></div><div class="hs-l">Energía limpia</div></div>
+      <div><div class="hs-n">15<span>+</span></div><div class="hs-l">Años de garantía</div></div>
+      <div><div class="hs-n">ARG</div><div class="hs-l">Cobertura nacional</div></div>
+    </div>
+  </div>
+  <div class="hero-right">
+    <div class="hero-visual">
+      <div class="h-orbit orbit-cw"  style="width:520px;height:520px;"></div>
+      <div class="h-orbit h-orbit-g orbit-ccw" style="width:380px;height:380px;"></div>
+      <div class="h-orbit orbit-cw"  style="width:240px;height:240px;border-color:rgba(232,160,32,.09);"></div>
+      <!-- SPINNING LOGO — perfectly symmetric, 60s once per minute -->
+      <svg width="200" height="200" viewBox="0 0 72 72" fill="none" class="logo-spin hero-breathe" style="position:relative;z-index:1;">
+        <circle cx="36" cy="36" r="32" stroke="#E8A020" stroke-width="0.8" stroke-dasharray="4 3" opacity="0.7"/>
+        <polygon points="36,14 55.1,25 55.1,47 36,58 16.9,47 16.9,25" stroke="#E8A020" stroke-width="1.4" fill="none"/>
+        <circle cx="36" cy="36" r="12" stroke="#F5C842" stroke-width="0.6" fill="none" opacity="0.35"/>
+        <line x1="36"  y1="5"    x2="36"  y2="11"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="57.9" y1="14.1" x2="53.7" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="67"  y1="36"   x2="61"  y2="36"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="57.9" y1="57.9" x2="53.7" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="36"  y1="67"   x2="36"  y2="61"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="14.1" y1="57.9" x2="18.3" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+        <line x1="5"   y1="36"   x2="11"  y2="36"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+        <line x1="14.1" y1="14.1" x2="18.3" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+        <circle cx="36" cy="36" r="6.5" fill="#E8A020"/>
+      </svg>
+    </div>
+    <span class="hero-corner r">Energía · Diseño · Propósito</span>
+    <span class="hero-corner b">Coherencia Solar · Argentina</span>
+  </div>
+</section>
+
+<!-- ══ MANIFESTO ════════════════════════════════ -->
+<div class="manifesto reveal">
+  <p class="m-lbl">Nuestra filosofía</p>
+  <blockquote class="m-q">No vendemos paneles. Te ayudamos a vivir en <strong>coherencia</strong> con tu energía, tu hogar y tu comunidad.</blockquote>
+</div>
+
+<!-- ══ SERVICIOS ════════════════════════════════ -->
+<section id="servicios" class="page page-dk">
+  <div class="section-header reveal">
+    <div>
+      <p class="sh-lbl">02 — Lo que hacemos</p>
+      <h2 class="sh-title">Nuestros <em>Servicios</em></h2>
+    </div>
+  </div>
+  <div class="svc-grid">
+    <div class="svc-card reveal">
+      <div class="svc-grid-bg"></div>
+      <span class="svc-tag">Residencial</span>
+      <div class="svc-icon">
+        <svg width="52" height="48" viewBox="0 0 52 48" fill="none">
+          <path d="M6 22L26 4L46 22V44H34V32H18V44H6V22Z" stroke="#E8A020" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+          <line x1="16" y1="21" x2="22" y2="15" stroke="rgba(232,160,32,.4)" stroke-width="1"/>
+          <line x1="20" y1="25" x2="26" y2="19" stroke="rgba(232,160,32,.4)" stroke-width="1"/>
+          <line x1="24" y1="29" x2="30" y2="23" stroke="rgba(232,160,32,.4)" stroke-width="1"/>
+          <line x1="28" y1="33" x2="34" y2="27" stroke="rgba(232,160,32,.4)" stroke-width="1"/>
+        </svg>
+      </div>
+      <h3 class="svc-title">Solar Residencial</h3>
+      <p class="svc-desc">Transformá tu hogar en una fuente de energía propia. Reducí significativamente tu factura eléctrica con un sistema diseñado a medida para tu consumo y espacio.</p>
+      <div class="svc-feats">
+        <div class="svc-feat">Análisis de consumo y diseño personalizado</div>
+        <div class="svc-feat">Instalación certificada con garantía extendida</div>
+        <div class="svc-feat">Monitoreo remoto y soporte post-instalación</div>
+        <div class="svc-feat">Gestión de trámites de inyección a la red</div>
+      </div>
+      <a href="#contacto" class="btn-outline">Consultar →</a>
+    </div>
+    <div class="svc-card reveal rd1">
+      <div class="svc-grid-bg"></div>
+      <span class="svc-tag">Industrial</span>
+      <div class="svc-icon">
+        <svg width="56" height="48" viewBox="0 0 56 48" fill="none">
+          <path d="M4 20L20 8H36L52 20V44H4V20Z" stroke="#E8A020" stroke-width="1.2" fill="none" stroke-linejoin="round"/>
+          <rect x="10" y="20" width="36" height="8" rx="0.5" stroke="rgba(232,160,32,.3)" stroke-width=".8" fill="none"/>
+          <line x1="19" y1="20" x2="19" y2="28" stroke="rgba(232,160,32,.25)" stroke-width=".7"/>
+          <line x1="28" y1="20" x2="28" y2="28" stroke="rgba(232,160,32,.25)" stroke-width=".7"/>
+          <line x1="37" y1="20" x2="37" y2="28" stroke="rgba(232,160,32,.25)" stroke-width=".7"/>
+          <line x1="20" y1="28" x2="20" y2="44" stroke="rgba(232,160,32,.2)" stroke-width=".7"/>
+          <line x1="36" y1="28" x2="36" y2="44" stroke="rgba(232,160,32,.2)" stroke-width=".7"/>
+        </svg>
+      </div>
+      <h3 class="svc-title">Solar Industrial</h3>
+      <p class="svc-desc">Hacé coherente a tu empresa. Instalaciones de gran escala que reducen costos operativos, mejoran tu huella ambiental y posicionan tu marca como responsable.</p>
+      <div class="svc-feats">
+        <div class="svc-feat">Relevamiento técnico y estudio de viabilidad</div>
+        <div class="svc-feat">Diseño de sistemas de alta potencia (kW a MW)</div>
+        <div class="svc-feat">Financiamiento y asesoría fiscal disponible</div>
+        <div class="svc-feat">Mantenimiento preventivo y correctivo</div>
+      </div>
+      <a href="#contacto" class="btn-outline">Consultar →</a>
+    </div>
+  </div>
+  <div class="process-row">
+    <div class="proc-step reveal"><div class="proc-num">01</div><div class="proc-title">Consulta</div><div class="proc-desc">Analizamos tu consumo, espacio y objetivos para diseñar la solución ideal.</div></div>
+    <div class="proc-step reveal rd1"><div class="proc-num">02</div><div class="proc-title">Diseño</div><div class="proc-desc">Ingeniería personalizada: potencia, disposición y rendimiento estimado.</div></div>
+    <div class="proc-step reveal rd2"><div class="proc-num">03</div><div class="proc-title">Instalación</div><div class="proc-desc">Equipo certificado, materiales de primera y tiempos cumplidos.</div></div>
+    <div class="proc-step reveal rd3"><div class="proc-num">04</div><div class="proc-title">Seguimiento</div><div class="proc-desc">Monitoreo remoto, soporte y garantía de rendimiento.</div></div>
+  </div>
+
+  <!-- ══ SURVEY / QUIZ ══════════════════════ -->
+  <div class="survey-wrap reveal" style="margin-top:2px;">
+    <div class="survey-inner">
+      <div class="survey-header">
+        <p class="survey-eyebrow">Orientación inicial · Sin compromiso</p>
+        <h3 class="survey-title">¿Solar es para <em>vos</em>?</h3>
+      </div>
+
+      <!-- Progress dots -->
+      <div class="survey-progress">
+        <div class="sp-dot active" id="dot-0"></div>
+        <div class="sp-dot" id="dot-1"></div>
+        <div class="sp-dot" id="dot-2"></div>
+        <div class="sp-dot" id="dot-3"></div>
+      </div>
+
+      <!-- STEP 0 -->
+      <div class="survey-step active" id="step-0">
+        <p class="step-question">¿Cuál es tu principal objetivo con la energía solar?</p>
+        <p class="step-hint">Podés tener más de uno, pero elegí el que más te moviliza.</p>
+        <div class="step-options four">
+          <button class="opt-btn" onclick="selectOpt(0,0,this)">
+            <span class="opt-emoji">💸</span>
+            <span class="opt-label">Bajar la factura</span>
+            <span class="opt-sub">Reducir el gasto mensual en energía</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(0,1,this)">
+            <span class="opt-emoji">🔦</span>
+            <span class="opt-label">Tener luz en los cortes</span>
+            <span class="opt-sub">No depender de la red cuando falla</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(0,2,this)">
+            <span class="opt-emoji">🌿</span>
+            <span class="opt-label">Independizarme de la red</span>
+            <span class="opt-sub">Generar y consumir mi propia energía</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(0,3,this)">
+            <span class="opt-emoji">⚡</span>
+            <span class="opt-label">Todo lo anterior</span>
+            <span class="opt-sub">Quiero la solución más completa</span>
+          </button>
+        </div>
+        <div class="survey-nav"><span></span></div>
+      </div>
+
+      <!-- STEP 1 -->
+      <div class="survey-step" id="step-1">
+        <p class="step-question">¿Dónde podrían instalarse los paneles?</p>
+        <p class="step-hint">La ubicación y orientación influyen directamente en la energía que vas a generar.</p>
+        <div class="step-options four">
+          <button class="opt-btn" onclick="selectOpt(1,0,this)">
+            <span class="opt-emoji">🏠</span>
+            <span class="opt-label">Techo de loza (plano)</span>
+            <span class="opt-sub">Permite orientar los paneles al Norte con estructura</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(1,1,this)">
+            <span class="opt-emoji">🏭</span>
+            <span class="opt-label">Techo de chapa inclinado</span>
+            <span class="opt-sub">Instalación coplanar, sigue la pendiente del techo</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(1,2,this)">
+            <span class="opt-emoji">🏢</span>
+            <span class="opt-label">Techo de edificio / terraza</span>
+            <span class="opt-sub">Espacio compartido o uso exclusivo</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(1,3,this)">
+            <span class="opt-emoji">🌾</span>
+            <span class="opt-label">Suelo / campo abierto</span>
+            <span class="opt-sub">Estructura sobre tierra, máxima libertad de orientación</span>
+          </button>
+        </div>
+        <div class="survey-nav">
+          <button class="survey-back" onclick="goStep(0)">← Anterior</button>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="survey-step" id="step-2">
+        <p class="step-question">¿En qué orientación está ese espacio disponible?</p>
+        <p class="step-hint">En Argentina el Norte es el oro: máxima irradiación todo el año. Este y Oeste son viables. El Sur no se recomienda para instalaciones principales.</p>
+        <div class="step-options four">
+          <button class="opt-btn" onclick="selectOpt(2,0,this)">
+            <span class="opt-emoji">⬆️</span>
+            <span class="opt-label">Norte</span>
+            <span class="opt-sub">La orientación ideal — máximo rendimiento anual</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(2,1,this)">
+            <span class="opt-emoji">➡️</span>
+            <span class="opt-label">Este</span>
+            <span class="opt-sub">Muy buena generación en la mañana</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(2,2,this)">
+            <span class="opt-emoji">⬅️</span>
+            <span class="opt-label">Oeste</span>
+            <span class="opt-sub">Buena generación en la tarde</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(2,3,this)">
+            <span class="opt-emoji">❓</span>
+            <span class="opt-label">No sé / Mixto</span>
+            <span class="opt-sub">Lo evaluamos en la visita técnica</span>
+          </button>
+        </div>
+        <div class="survey-nav">
+          <button class="survey-back" onclick="goStep(1)">← Anterior</button>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="survey-step" id="step-3">
+        <p class="step-question">¿Qué tipo de inmueble es?</p>
+        <p class="step-hint">Esto nos ayuda a entender la escala, los requisitos técnicos y las opciones de financiamiento más adecuadas para tu caso.</p>
+        <div class="step-options three">
+          <button class="opt-btn" onclick="selectOpt(3,0,this)">
+            <span class="opt-emoji">🏡</span>
+            <span class="opt-label">Residencial</span>
+            <span class="opt-sub">Casa, departamento, PH o country</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(3,1,this)">
+            <span class="opt-emoji">🏢</span>
+            <span class="opt-label">Comercial / Industrial</span>
+            <span class="opt-sub">Empresa, fábrica, galpón u oficina</span>
+          </button>
+          <button class="opt-btn" onclick="selectOpt(3,2,this)">
+            <span class="opt-emoji">🌳</span>
+            <span class="opt-label">Rural / Campo</span>
+            <span class="opt-sub">Establecimiento rural, bomba de agua, riego</span>
+          </button>
+        </div>
+        <div class="survey-nav">
+          <button class="survey-back" onclick="goStep(2)">← Anterior</button>
+        </div>
+      </div>
+
+      <!-- RESULT -->
+      <div class="survey-result" id="survey-result">
+        <div class="sr-icon" id="sr-icon">☀️</div>
+        <p class="sr-tag" id="sr-tag">Evaluación preliminar</p>
+        <h3 class="sr-title" id="sr-title">Tu proyecto tiene muy buen potencial.</h3>
+        <p class="sr-body" id="sr-body"></p>
+        <div class="sr-note" id="sr-note"></div>
+        <div style="display:flex;align-items:center;gap:20px;flex-wrap:wrap;">
+          <a href="#contacto" class="btn-primary">
+            Quiero un presupuesto real →
+          </a>
+          <button class="survey-restart" onclick="restartSurvey()">Volver a empezar</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- ══ PROYECTOS ════════════════════════════════ -->
+<section id="proyectos" class="page page-lt">
+  <div class="section-header lt reveal">
+    <div>
+      <p class="sh-lbl grn">03 — Trabajos realizados</p>
+      <h2 class="sh-title dk">Proyectos <em>Destacados</em></h2>
+    </div>
+  </div>
+  <div class="proj-grid">
+    <!-- FEATURED — Residential flat roof (loza) — provided URL -->
+    <div class="proj-card feat reveal">
+      <img class="proj-img"
+        src="https://solarservice.uk/wp-content/uploads/2023/08/solar-pv-panels-on-flat-roof-min.jpg"
+        alt="Instalación solar paneles en techo de loza plano"
+        onerror="this.style.background='#1E1E1C';this.style.display='block';this.style.minHeight='300px'">
+      <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
+      <div class="proj-badge">Residencial · Techo de loza</div>
+      <div class="proj-info">
+        <div class="proj-tag">Residencial · Techo plano / loza</div>
+        <div class="proj-name">Sistema con estructura orientada al Norte</div>
+        <div class="proj-detail">Máximo aprovechamiento de la irradiación solar</div>
+      </div>
+    </div>
+    <!-- Industrial — Galpón techo coplanar/engrafado — provided URL -->
+    <div class="proj-card reveal rd1">
+      <img class="proj-img"
+        src="https://www.pretapower.com/wp-content/uploads/2025/08/Commercial-Solar-Install-on-Corrugated-Metal-Warehouse-Roof.jpg"
+        alt="Instalación solar industrial galpón techo coplanar engrafado"
+        onerror="this.style.background='#252522';this.style.display='block'">
+      <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
+      <div class="proj-badge">Industrial · Techo engrafado</div>
+      <div class="proj-info">
+        <div class="proj-tag">Industrial · Techo coplanar engrafado</div>
+        <div class="proj-name">Galpón industrial · Gran escala</div>
+        <div class="proj-detail">Instalación coplanar de alta potencia</div>
+      </div>
+    </div>
+    <!-- Residential 2 -->
+    <div class="proj-card reveal rd2">
+      <img class="proj-img"
+        src="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80&fit=crop"
+        alt="Paneles solares residencial"
+        onerror="this.style.background='#1E1E1C'">
+      <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
+      <div class="proj-badge">Residencial</div>
+      <div class="proj-info">
+        <div class="proj-tag">Residencial · Córdoba</div>
+        <div class="proj-name">Casa familiar · 6 kWp</div>
+        <div class="proj-detail">Con inyección a la red + batería</div>
+      </div>
+    </div>
+    <!-- Industrial 2 -->
+    <div class="proj-card reveal rd1">
+      <img class="proj-img"
+        src="https://images.unsplash.com/photo-1548089934-6a1e48e63d49?w=800&q=80&fit=crop"
+        alt="Instalación industrial solar"
+        onerror="this.style.background='#252522'">
+      <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
+      <div class="proj-badge">Industrial</div>
+      <div class="proj-info">
+        <div class="proj-tag">Industrial · Mendoza</div>
+        <div class="proj-name">Planta industrial · Alta potencia</div>
+        <div class="proj-detail">Retorno de inversión 3–5 años</div>
+      </div>
+    </div>
+  </div>
+  <div class="proj-cta reveal">
+    <p class="proj-cta-text">¿Querés ver más o hablar del tuyo?</p>
+    <a href="#contacto" class="btn-primary">Hablemos de tu proyecto →</a>
+  </div>
+</section>
+
+<!-- ══ NÚMEROS — count-up ═══════════════════════ -->
+<div class="numbers reveal" id="numbers-section">
+  <div class="num-cell">
+    <div class="nc-n"><span id="cnt-inst">0</span><span>+</span></div>
+    <div class="nc-l">Instalaciones</div>
+  </div>
+  <div class="num-cell rd1">
+    <div class="nc-n"><span id="cnt-kw">0</span><span>kW</span></div>
+    <div class="nc-l">Potencia instalada</div>
+  </div>
+  <div class="num-cell rd2">
+    <div class="nc-n"><span id="cnt-gar">0</span><span>+</span></div>
+    <div class="nc-l">Años de garantía</div>
+  </div>
+  <div class="num-cell rd3">
+    <div class="nc-n">0<span>CO₂</span></div>
+    <div class="nc-l">Emisiones operativas</div>
+  </div>
+</div>
+
+<!-- ══ TESTIMONIALES ════════════════════════════ -->
+<section class="page page-lt">
+  <div class="section-header lt reveal">
+    <div>
+      <p class="sh-lbl grn">04 — Lo que dicen</p>
+      <h2 class="sh-title dk">Nuestros <em>Clientes</em></h2>
+    </div>
+  </div>
+  <div class="testi-grid">
+    <div class="testi-card reveal">
+      <div class="tc-stars">★★★★★</div>
+      <p class="tc-text">"Desde que instalamos los paneles, nuestra factura bajó un 85%. El equipo fue muy profesional y transparente en todo momento. Los recomiendo sin dudarlo."</p>
+      <div class="tc-sep"></div>
+      <div><div class="tc-name">Martín G.</div><div class="tc-role">Casa familiar · Palermo, CABA</div></div>
+    </div>
+    <div class="testi-card reveal rd1">
+      <div class="tc-stars">★★★★★</div>
+      <p class="tc-text">"Instalamos un sistema de 60 kWp en nuestro galpón. El retorno fue mejor de lo esperado. Coherencia Solar cumplió con todo lo prometido y más."</p>
+      <div class="tc-sep"></div>
+      <div><div class="tc-name">Diego F.</div><div class="tc-role">Gerente de operaciones · Zona Industrial GBA</div></div>
+    </div>
+    <div class="testi-card reveal rd2">
+      <div class="tc-stars">★★★★★</div>
+      <p class="tc-text">"Lo que más valoro es el seguimiento post-venta. Siempre disponibles para resolver cualquier consulta. Genuinamente coherentes con lo que predican."</p>
+      <div class="tc-sep"></div>
+      <div><div class="tc-name">Luciana M.</div><div class="tc-role">Propietaria · Mendoza</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WHY ══════════════════════════════════════ -->
+<section class="why" id="nosotros">
+  <div class="reveal">
+    <p class="why-eyebrow">Por qué elegirnos</p>
+    <h2 class="why-title">Más que una<br>empresa <em>solar.</em></h2>
+    <p class="why-text">Coherencia Solar nació con una convicción: la energía solar tiene que ser accesible, honesta y pensada para las personas. Somos técnicos con vocación de servicio que creemos que vivir bien y consumir bien van de la mano.</p>
+  </div>
+  <div class="why-cards">
+    <div class="why-card reveal"><span class="wc-n">01</span><div><div class="wc-t">Diseño a medida</div><div class="wc-d">Cada sistema es calculado para tu consumo real. Sin sobredimensionamientos ni propuestas genéricas.</div></div></div>
+    <div class="why-card reveal rd1"><span class="wc-n">02</span><div><div class="wc-t">Transparencia total</div><div class="wc-d">Te explicamos todo: qué instalamos, por qué, cuánto rinde y cuándo recuperás la inversión.</div></div></div>
+    <div class="why-card reveal rd2"><span class="wc-n">03</span><div><div class="wc-t">Materiales certificados</div><div class="wc-d">Solo trabajamos con marcas que garantizan el rendimiento y la durabilidad de los equipos.</div></div></div>
+    <div class="why-card reveal rd3"><span class="wc-n">04</span><div><div class="wc-t">Soporte post-venta</div><div class="wc-d">No desaparecemos después de instalar. Monitoreamos, mantenemos y respondemos siempre.</div></div></div>
+  </div>
+</section>
+
+<!-- ══ FAQ ══════════════════════════════════════ -->
+<section id="faq" class="page page-dk">
+  <div class="section-header reveal">
+    <div>
+      <p class="sh-lbl">06 — Preguntas frecuentes</p>
+      <h2 class="sh-title">Tus <em>dudas</em>, respondidas.</h2>
+    </div>
+  </div>
+  <div class="faq-list reveal">
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿Cuánto tarda la instalación?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Una instalación residencial típica toma entre 1 y 3 días. Las industriales, entre 1 y 3 semanas según el tamaño. Antes de empezar, te damos un cronograma exacto con fechas comprometidas.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿Qué pasa en los días nublados?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Los paneles siguen generando con luz difusa, aunque con menor eficiencia. El sistema está conectado a la red como respaldo. Con baterías, podés almacenar lo generado en días soleados para usar cuando lo necesités.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿Cuánto voy a ahorrar realmente en mi factura?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Es importante aclararlo: tu factura tiene una parte fija (impuestos, cargo fijo, subsidios) y una parte variable (el consumo real). El ahorro solar impacta principalmente en la parte variable, que puede reducirse entre un 50% y un 80% según el sistema y tu perfil de consumo. En la consulta inicial te mostramos exactamente qué parte de tu factura puede bajar.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿En cuánto tiempo recupero la inversión?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Para proyectos industriales y comerciales, el retorno típico es de 3 a 5 años. Para instalaciones residenciales, entre 4 y 7 años. Depende del tamaño del sistema, tu consumo y la tarifa de tu zona. A partir de ese punto, la energía es prácticamente gratuita por los siguientes 20+ años.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿Necesito hacer trámites con la distribuidora?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Sí, para conectarse a la red y poder inyectar excedentes. Nosotros nos encargamos de todo el proceso de habilitación ante la distribuidora de tu zona, sin que tengas que moverte.</div>
+    </div>
+    <div class="faq-item">
+      <button class="faq-q" onclick="toggleFaq(this)">¿Qué garantías tienen los equipos?<span class="faq-icon">+</span></button>
+      <div class="faq-a">Los paneles tienen garantía de producto de 12 años y garantía de rendimiento de 25 años (mínimo 80% de potencia nominal). Los inversores tienen entre 5 y 10 años según la marca. Adicionalmente, damos garantía de instalación por nuestra mano de obra.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CONTACTO ══════════════════════════════════ -->
+<section id="contacto" class="page page-dk">
+  <div class="section-header reveal">
+    <div>
+      <p class="sh-lbl">07 — Hablemos</p>
+      <h2 class="sh-title">Pedí tu <em>Presupuesto</em></h2>
+    </div>
+  </div>
+  <div class="contact-grid">
+    <div class="reveal">
+      <h3 class="contact-intro">El primer paso hacia la <em>coherencia energética</em> es una conversación.</h3>
+      <div class="contact-details">
+        <div class="cd-item">
+          <div class="cd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z" fill="rgba(232,160,32,.6)"/></svg></div>
+          <div>
+            <div class="cd-lbl">Depósito y oficinas</div>
+            <div class="cd-val">Munro, Buenos Aires, Argentina</div>
+          </div>
+        </div>
+        <div class="cd-item">
+          <div class="cd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M6.62 10.79c1.44 2.83 3.76 5.14 6.59 6.59l2.2-2.2c.27-.27.67-.36 1.02-.24 1.12.37 2.33.57 3.57.57.55 0 1 .45 1 1V20c0 .55-.45 1-1 1-9.39 0-17-7.61-17-17 0-.55.45-1 1-1h3.5c.55 0 1 .45 1 1 0 1.25.2 2.45.57 3.57.11.35.03.74-.25 1.02l-2.2 2.2z" fill="rgba(232,160,32,.6)"/></svg></div>
+          <div>
+            <div class="cd-lbl">WhatsApp</div>
+            <div class="cd-val">+54 9 11 6377 7936</div>
+          </div>
+        </div>
+        <div class="cd-item">
+          <div class="cd-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M20 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 4l-8 5-8-5V6l8 5 8-5v2z" fill="rgba(232,160,32,.6)"/></svg></div>
+          <div>
+            <div class="cd-lbl">Email</div>
+            <div class="cd-val">Coherenciasolar@protonmail.com</div>
+          </div>
+        </div>
+      </div>
+      <a href="https://wa.me/5491163777936?text=Hola!%20Quiero%20consultar%20sobre%20paneles%20solares." target="_blank" class="btn-verde">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+        Escribinos por WhatsApp
+      </a>
+    </div>
+    <form class="form reveal rd1" onsubmit="submitForm(event)">
+      <div class="form-row">
+        <div><label class="form-lbl">Nombre</label><input type="text" class="form-input" placeholder="Tu nombre"></div>
+        <div><label class="form-lbl">Teléfono</label><input type="tel" class="form-input" placeholder="+54 9 11 ..."></div>
+      </div>
+      <div><label class="form-lbl">Email</label><input type="email" class="form-input" placeholder="tu@email.com"></div>
+      <div>
+        <label class="form-lbl">Tipo de proyecto</label>
+        <select class="form-sel">
+          <option value="" disabled selected>Seleccioná una opción</option>
+          <option>Residencial — Casa o departamento</option>
+          <option>Industrial — Empresa o fábrica</option>
+          <option>Comercial — Local o edificio</option>
+          <option>Agro — Campo o establecimiento rural</option>
+          <option>No sé todavía, quiero asesorarme</option>
+        </select>
+      </div>
+      <div><label class="form-lbl">Mensaje (opcional)</label><textarea class="form-ta" placeholder="Contanos sobre tu proyecto, ubicación, consumo estimado..."></textarea></div>
+      <button type="submit" class="form-submit">
+        Enviar consulta
+        <svg width="14" height="10" viewBox="0 0 14 10" fill="none"><path d="M1 5H13M9 1L13 5L9 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg>
+      </button>
+    </form>
+  </div>
+</section>
+
+<!-- ══ FOOTER ════════════════════════════════════ -->
+<footer>
+  <div class="footer-main">
+    <div>
+      <div style="display:flex;align-items:center;gap:14px;">
+        <svg width="32" height="32" viewBox="0 0 72 72" fill="none" class="logo-spin">
+          <circle cx="36" cy="36" r="32" stroke="#E8A020" stroke-width="0.9" stroke-dasharray="4 3" opacity="0.7"/>
+          <polygon points="36,14 55.1,25 55.1,47 36,58 16.9,47 16.9,25" stroke="#E8A020" stroke-width="1.5" fill="none"/>
+          <circle cx="36" cy="36" r="12" stroke="#F5C842" stroke-width="0.7" fill="none" opacity="0.35"/>
+          <line x1="36"  y1="5"   x2="36"  y2="11"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="57.9" y1="14.1" x2="53.7" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="67"  y1="36"  x2="61"  y2="36"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="57.9" y1="57.9" x2="53.7" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="36"  y1="67"  x2="36"  y2="61"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="14.1" y1="57.9" x2="18.3" y2="53.7" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+          <line x1="5"   y1="36"  x2="11"  y2="36"   stroke="#F5C842" stroke-width="1.5" stroke-linecap="round"/>
+          <line x1="14.1" y1="14.1" x2="18.3" y2="18.3" stroke="#F5C842" stroke-width="1.3" stroke-linecap="round"/>
+          <circle cx="36" cy="36" r="6.5" fill="#E8A020"/>
+        </svg>
+        <div>
+          <div style="font-family:'Cormorant Garamond',serif;font-size:17px;font-weight:500;letter-spacing:.18em;text-transform:uppercase;color:var(--crema);">Coherencia</div>
+          <div style="font-size:8px;letter-spacing:.4em;text-transform:uppercase;color:var(--sol);">Solar</div>
+        </div>
+      </div>
+      <p class="fb-tag">"Energía con propósito."</p>
+    </div>
+    <div><p class="fc-title">Servicios</p><ul class="fc-links"><li><a href="#servicios">Solar Residencial</a></li><li><a href="#servicios">Solar Industrial</a></li><li><a href="#servicios">Consultoría</a></li><li><a href="#servicios">Mantenimiento</a></li></ul></div>
+    <div><p class="fc-title">Empresa</p><ul class="fc-links"><li><a href="#nosotros">Nosotros</a></li><li><a href="#proyectos">Proyectos</a></li><li><a href="#faq">FAQ</a></li><li><a href="#contacto">Contacto</a></li></ul></div>
+    <div><p class="fc-title">Contacto</p><ul class="fc-links"><li><a href="https://wa.me/5491163777936" target="_blank">WhatsApp</a></li><li><a href="mailto:Coherenciasolar@protonmail.com">Email</a></li><li><a href="#">Instagram</a></li><li><a href="#">LinkedIn</a></li></ul></div>
+  </div>
+  <div class="footer-bot">
+    <p class="footer-copy">© 2025 Coherencia Solar. Hecho en <span>Argentina</span> con propósito.</p>
+    <p class="footer-copy">Munro, Buenos Aires · Cobertura nacional</p>
+  </div>
+</footer>
+
+<script>
+/* ══ SCROLL PROGRESS */
+window.addEventListener('scroll',()=>{
+  const h=document.documentElement;
+  document.getElementById('progress-bar').style.width=
+    (h.scrollTop/(h.scrollHeight-h.clientHeight)*100)+'%';
+});
+
+/* ══ SCROLL REVEAL */
+const revObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible');});
+},{threshold:.1,rootMargin:'0px 0px -30px 0px'});
+document.querySelectorAll('.reveal').forEach(el=>revObs.observe(el));
+
+/* ══ MOBILE MENU */
+function toggleMenu(){document.getElementById('mobMenu').classList.toggle('open');}
+
+/* ══ SMOOTH SCROLL */
+document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  a.addEventListener('click',e=>{
+    e.preventDefault();
+    document.querySelector(a.getAttribute('href'))?.scrollIntoView({behavior:'smooth'});
+  });
+});
+
+/* ══ COUNT-UP ANIMATION */
+let counted=false;
+const countObs=new IntersectionObserver(es=>{
+  es.forEach(e=>{
+    if(e.isIntersecting && !counted){
+      counted=true;
+      countUp('cnt-inst', 0, 50,  1800);
+      countUp('cnt-kw',   0, 500, 2200);
+      countUp('cnt-gar',  0, 15,  1400);
+    }
+  });
+},{threshold:.5});
+countObs.observe(document.getElementById('numbers-section'));
+
+function countUp(id, from, to, duration){
+  const el=document.getElementById(id);
+  if(!el)return;
+  const start=performance.now();
+  function step(now){
+    const p=Math.min((now-start)/duration,1);
+    const ease=1-Math.pow(1-p,3);
+    el.textContent=Math.round(from+(to-from)*ease);
+    if(p<1)requestAnimationFrame(step);
+  }
+  requestAnimationFrame(step);
+}
+
+/* ══ SURVEY LOGIC */
+const answers={};
+let currentStep=0;
+const totalSteps=4;
+
+function selectOpt(step, val, btn){
+  // Clear siblings
+  btn.closest('.step-options').querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  btn.classList.add('selected');
+  answers[step]=val;
+  // Brief delay then advance
+  setTimeout(()=>{ if(step<totalSteps-1) goStep(step+1); else showResult(); }, 300);
+}
+
+function goStep(n){
+  document.getElementById('step-'+currentStep)?.classList.remove('active');
+  currentStep=n;
+  document.getElementById('step-'+n)?.classList.add('active');
+  // Update dots
+  for(let i=0;i<totalSteps;i++){
+    const d=document.getElementById('dot-'+i);
+    if(!d)continue;
+    d.classList.remove('active','done');
+    if(i===n) d.classList.add('active');
+    else if(i<n) d.classList.add('done');
+  }
+}
+
+function showResult(){
+  // Hide steps
+  document.querySelectorAll('.survey-step').forEach(s=>s.classList.remove('active'));
+  // Update all dots to done
+  for(let i=0;i<totalSteps;i++){
+    const d=document.getElementById('dot-'+i);
+    if(d){d.classList.remove('active');d.classList.add('done');}
+  }
+
+  // Build result based on answers
+  const obj  = answers[0]; // 0=factura,1=cortes,2=independencia,3=todo
+  const place = answers[1]; // 0=loza,1=chapa,2=edificio,3=suelo
+  const orient= answers[2]; // 0=norte,1=este,2=oeste,3=nosé
+  const type  = answers[3]; // 0=residencial,1=industrial,2=rural
+
+  let icon='☀️', tag='Evaluación preliminar', title='', body='', note='';
+
+  // TITLE based on type
+  if(type===1){
+    icon='🏭'; tag='Perfil Industrial / Comercial';
+    title='Tu empresa tiene un alto potencial de ahorro con energía solar.';
+    body='Los proyectos industriales y comerciales son los que ofrecen el retorno más rápido. Con consumos elevados y horarios de producción que coinciden con las horas de sol, las condiciones son ideales para que la inversión se amortice en 3 a 5 años.';
+    note='En industria, la parte variable de la factura suele ser muy significativa. Un sistema bien dimensionado puede reducirla entre un 60% y un 80%, generando ahorros reales desde el primer mes.';
+  } else if(type===2){
+    icon='🌾'; tag='Perfil Rural / Campo';
+    title='La energía solar puede transformar completamente tu establecimiento.';
+    body='En el ámbito rural, la solar no solo baja costos: en muchos casos es la única fuente de energía disponible y confiable. Desde bombeo de agua hasta iluminación y electrificación completa, las posibilidades son amplias.';
+    note='Los sistemas rurales suelen incluir baterías para autonomía total. El retorno depende del ahorro en combustible de generadores o en el costo de traer red eléctrica, que frecuentemente hace que la inversión sea muy rentable.';
+  } else {
+    icon='🏠'; tag='Perfil Residencial';
+    title='Tu hogar tiene muy buen potencial para energía solar.';
+    body='Para uso residencial, la energía solar es una inversión que rinde tanto en el bolsillo como en calidad de vida. Más allá del ahorro económico, la tranquilidad de tener tu propia fuente de energía no tiene precio.';
+    note='Recordá que en tu factura hay una parte fija (impuestos, cargo de distribución) y una parte variable (el consumo real). El ahorro solar impacta en la variable, que puede bajar entre un 50% y un 80% según el sistema. El retorno típico para residencial es de 4 a 7 años.';
+  }
+
+  // Add orientation comment
+  if(orient===0){
+    body+=' Además, la orientación Norte que mencionás es ideal para Argentina: es la que maximiza la captación solar durante todo el año.';
+  } else if(orient===3){
+    body+=' No te preocupés por no conocer la orientación exacta: en la visita técnica medimos y evaluamos el lugar para diseñar el sistema óptimo para tu caso.';
+  } else {
+    body+=' La orientación Este u Oeste es muy viable: solo afecta levemente el rendimiento total. Con un buen dimensionado, el sistema igual cumple los objetivos.';
+  }
+
+  // Add objective comment
+  if(obj===1){
+    note='Para tener energía durante cortes de red, el sistema necesita baterías o un inversor con función off-grid. Te asesoramos sobre la solución más adecuada y económica para tu caso.';
+  } else if(obj===2){
+    note='La independencia total de la red requiere un sistema con baterías de respaldo bien dimensionado. Es la opción más costosa, pero también la que da mayor autonomía y tranquilidad.';
+  }
+
+  document.getElementById('sr-icon').textContent=icon;
+  document.getElementById('sr-tag').textContent=tag;
+  document.getElementById('sr-title').textContent=title;
+  document.getElementById('sr-body').textContent=body;
+  document.getElementById('sr-note').textContent=note;
+  document.getElementById('survey-result').style.display='block';
+}
+
+function restartSurvey(){
+  document.getElementById('survey-result').style.display='none';
+  Object.keys(answers).forEach(k=>delete answers[k]);
+  document.querySelectorAll('.opt-btn').forEach(b=>b.classList.remove('selected'));
+  for(let i=0;i<totalSteps;i++){
+    const d=document.getElementById('dot-'+i);
+    if(d){d.classList.remove('active','done');if(i===0)d.classList.add('active');}
+  }
+  currentStep=0;
+  document.getElementById('step-0').classList.add('active');
+}
+
+/* ══ FAQ ACCORDION */
+function toggleFaq(btn){
+  const ans=btn.nextElementSibling;
+  const wasOpen=btn.classList.contains('open');
+  document.querySelectorAll('.faq-q').forEach(q=>{q.classList.remove('open');q.nextElementSibling.classList.remove('open');});
+  if(!wasOpen){btn.classList.add('open');ans.classList.add('open');}
+}
+
+/* ══ FORM SUBMIT */
+function submitForm(e){
+  e.preventDefault();
+  const btn=e.target.querySelector('.form-submit');
+  btn.innerHTML='✓ &nbsp; ¡Enviado! Nos contactamos pronto.';
+  btn.style.background='var(--verde)';
+  btn.style.cursor='default';
+  btn.style.pointerEvents='none';
+}
+</script>
+</body>
+</html>
