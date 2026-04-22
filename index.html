@@ -711,7 +711,7 @@ footer{background:var(--c2);border-top:1px solid var(--rdk);}
     <!-- Residential 2 -->
     <div class="proj-card reveal rd2">
       <img class="proj-img"
-        src="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80&fit=crop"
+        src="https://solarservice.uk/wp-content/uploads/2023/08/flar-roof-solar-pv-panels-min-2048x797.jpg"
         alt="Paneles solares residencial"
         onerror="this.style.background='#1E1E1C'">
       <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
@@ -725,7 +725,7 @@ footer{background:var(--c2);border-top:1px solid var(--rdk);}
     <!-- Industrial 2 -->
     <div class="proj-card reveal rd1">
       <img class="proj-img"
-        src="https://images.unsplash.com/photo-1548089934-6a1e48e63d49?w=800&q=80&fit=crop"
+        src="https://images.unsplash.com/photo-1508514177221-188b1cf16e9d?w=800&q=80&fit=crop"
         alt="Instalación industrial solar"
         onerror="this.style.background='#252522'">
       <div class="proj-panel-grid"></div><div class="proj-overlay"></div>
@@ -758,7 +758,7 @@ footer{background:var(--c2);border-top:1px solid var(--rdk);}
     <div class="nc-l">Años de garantía</div>
   </div>
   <div class="num-cell rd3">
-    <div class="nc-n">0<span>CO₂</span></div>
+    <div class="nc-n">10<span>CO₂</span></div>
     <div class="nc-l">Emisiones operativas</div>
   </div>
 </div>
@@ -976,9 +976,9 @@ const countObs=new IntersectionObserver(es=>{
   es.forEach(e=>{
     if(e.isIntersecting && !counted){
       counted=true;
-      countUp('cnt-inst', 0, 50,  1800);
+      countUp('cnt-inst', 0, 15,  1800);
       countUp('cnt-kw',   0, 500, 2200);
-      countUp('cnt-gar',  0, 15,  1400);
+      countUp('cnt-gar',  0, 10,  1400);
     }
   });
 },{threshold:.5});
